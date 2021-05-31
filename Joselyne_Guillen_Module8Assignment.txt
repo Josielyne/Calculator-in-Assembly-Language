@@ -1,0 +1,371 @@
+;Joselyne Guillen
+;CS M145
+;nasm 2.13.02
+
+section .data   ;section to initialize variables
+
+    space: db ' '                ;initialize string variable with space
+  
+    spaceLen:  equ $-space       ;length of string
+    
+    equalsOp: db '='             ;initialize string variable with equals sign  
+
+    equalsOpLen:  equ $-equalsOp ;length of string
+    
+    newline: db 10               ;establish new line
+ 
+section .bss    ;section to declare variables
+    
+    num1 resb 1            ;declare 1 bit variable that will hold first number in equation inputted by user
+    num2 resb 1            ;declare 1 bit variable that will hold second number in equation inputted by user
+    operator resb 1        ;declare 1 bit variable that will hold operator in equation inputted by user
+    operationResult resb 1 ;declare 1 bit variable that will hold result of equation inputted by user
+    
+    newl: resb 2           ;declare 2 bit variable that will hold new line of input
+
+section .text   ;section that holds the code
+	global _start ;shows where program starts
+
+_start:
+
+
+readUserInput: ;label under which the characters in the user generated equations are read
+
+	mov eax,3              ;the system call for read   
+	mov ebx,0              ;file descriptor stdin
+	mov ecx,num1           ;variable that holds user input for first number in equation
+	mov edx,1              ;size of variable
+	int 80h                ;call kernel and reads user input
+    
+    mov eax,3              ;the system call for read   
+	mov ebx,0              ;file descriptor stdin
+	mov ecx,operator       ;variable that holds user input for operator in equation
+	mov edx,1              ;size of variable
+	int 80h                ;call kernel and reads user input
+    
+    mov eax,3              ;the system call for read   
+	mov ebx,0              ;file descriptor stdin
+	mov ecx,num2           ;variable that holds user input for second number in equation
+	mov edx,1              ;size of variable
+	int 80h                ;call kernel and reads user input
+    
+    mov eax,3              ; The system call for read
+	mov ebx,0              ; file descriptor stdin
+    mov ecx,newl           ; variable that holds new line of input
+	mov edx,2              ;size of variable  
+    int 80h                ;calls kernel
+    
+    cmp [num1], byte '.'   ;compares read character with a period
+    je End                 ;if they are equal, jump to the end of the program. This signifies the end of the user generated equations
+    
+    cmp [operator], byte '+' ;compares read character with a plus sign
+    je ADD                   ;if read character is equal to a plus sign, jump to ADD label
+    
+    cmp [operator], byte '-' ;compares read character with a minus sign
+    je SUBTRACT              ;if read character is equal to a minus sign, jump to SUBTRACT label
+    
+    cmp [operator], byte '*' ;compares read character with a multiplication sign
+    je MULTIPLY              ;if read character is equal to a multiplication sign, jump to MULTIPLY label
+    
+    cmp [operator], byte '/' ;compares read character with a division sign
+    je DIVIDE                ;if read character is equal to a division sign, jump to DIVIDE label
+    
+    jmp readUserInput        ;if none of the above conditions are met, jump to the readUserInput label to loop again and read the next character
+    
+    
+ADD:  ;label under which the two numbers in the user generated equation are added 
+    
+    mov al, byte [num1]        ;move num1 into al register       
+    mov bl, byte [num2]        ;move num2 into bl register
+    add al,bl                  ;add bl to al
+    mov [operationResult], al  ;move the sum stored in al to operationResult variable
+    
+    sub [operationResult], byte '0' ;subtract 0 from operationResult to convert from ascii to decimal
+   
+	mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,num1                   ;variable that holds user input for first number of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display num1
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,operator               ;variable that holds user input for operator in user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display operator
+
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,num2                   ;variable that holds user input for second number of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display num2
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,equalsOp               ;variable that holds equals sign
+	mov edx,equalsOpLen            ;length of what is to be displayed
+	int 80h                        ;call the kernel and display equalsOp
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,operationResult        ;variable that holds result of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display operationResult
+    
+    mov eax,4                      ;The system call for write 
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,newline                ;variable that holds new line
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;calls kernel and displays newline (skips to next line)
+
+    jmp readUserInput              ;jump to the readUserInput label to loop again and read the next character
+    
+SUBTRACT: ;label under which the two numbers in the user generated equation are subtracted 
+
+    mov al, byte [num1]        ;move num1 into al register
+    mov bl, byte [num2]        ;move num2 into bl register
+    sub al,bl                  ;subtract bl from al
+    mov [operationResult], al  ;move the difference stored in al to operationResult variable
+    
+    add [operationResult], byte '0' ;add 0 to operationResult to convert from decimal to ascii
+   
+	mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,num1                   ;variable that holds user input for first number of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display num1
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,operator               ;variable that holds user input for operator of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display operator
+
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,num2                   ;variable that holds user input for second number of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display num2
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,equalsOp               ;variable that holds an equals sign
+	mov edx,equalsOpLen            ;length of what is to be displayed
+	int 80h                        ;call the kernel and display equalsOp
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,operationResult        ;variable that holds result of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display operationResult
+    
+    mov eax,4                      ;The system call for write 
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,newline                ;variable that holds new line 
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;calls kernel and displays newline (skips to next line)
+    
+
+    jmp readUserInput              ;jump to the readUserInput label to loop again and read the next character
+	
+MULTIPLY: ;label under which the two numbers in the user generated equation are multiplied 
+
+    mov al, byte [num1]           ;move num1 into al register
+    mov bl, byte [num2]           ;move num2 into bl register
+    sub al, '0'                   ;subtract 0 from al to convert from ascii to decimal
+    sub bl, '0'                   ;subtract 0 from bl to convert from ascii to decimal
+    mul bl                        ;multiply al by bl
+    mov [operationResult], al     ;move product stored in al to operationResult variable
+    
+    add [operationResult], byte '0' ;add 0 to operationResult to convert from decimal to ascii
+   
+	mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,num1                   ;variable that holds user input for first number of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display num1
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,operator               ;variable that holds user input for operator of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display operator
+
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,num2                   ;variable that holds user input for second number of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display num2
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,equalsOp               ;variable that holds equals sign
+	mov edx,equalsOpLen            ;length of what is to be displayed
+	int 80h                        ;call the kernel and display equalsOp
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,operationResult        ;variable that holds result of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+    int 80h                        ;call the kernel and display operationResult
+    
+    mov eax,4                      ;the system call for write 
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,newline                ;variable that holds new line 
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;calls kernel and displays newline (skips to next line)
+    
+
+    jmp readUserInput              ;jump to the readUserInput label to loop again and read the next character
+
+DIVIDE: ;label under which the two numbers in the user generated equation are divided 
+
+    mov al, byte [num1]          ;move num1 into al register
+    mov bl, byte [num2]          ;move num2 into bl register
+    sub al, '0'                  ;subtract 0 from al to convert from ascii to decimal
+    sub bl, '0'                  ;subtract 0 from bl to convert from ascii to decimal
+    div bl                       ;divide al by bl
+    mov [operationResult], al    ;move quotient stored in al to operationResult variable
+    
+    add [operationResult], byte '0' ;add 0 to operationResult to convert from decimal to ascii
+   
+	mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,num1                   ;variable that holds user input for first number of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display num1
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,operator               ;variable that holds user input for operator of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display operator
+
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,num2                   ;variable that holds user input for second number of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;call the kernel and display num2
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,equalsOp               ;variable that holds an equals sign
+	mov edx,equalsOpLen            ;length of what is to be displayed
+	int 80h                        ;call the kernel and display equalsOp
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,space                  ;variable that holds a space
+	mov edx,spaceLen               ;length of what is to be displayed
+	int 80h                        ;call the kernel and display space
+    
+    mov eax,4                      ;the system call for write  
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,operationResult        ;variable that holds result of user generated equation
+	mov edx,1                      ;length of what is to be displayed
+    int 80h                        ;call the kernel and display operationResult
+    
+    mov eax,4                      ;the system call for write 
+	mov ebx,1                      ;file descriptor stdout
+	mov ecx,newline                ;variable that holds new line 
+	mov edx,1                      ;length of what is to be displayed
+	int 80h                        ;calls kernel and displays newline (skips to next line)
+    
+
+    jmp readUserInput              ;jump to the readUserInput label to loop again and read the next character
+
+    
+End: ;label under which the program ends
+	mov eax,1            ; The system call for exit (sys_exit)
+	mov ebx,0            ; Exit with return code of 0 (no error)
+	int 80h;
